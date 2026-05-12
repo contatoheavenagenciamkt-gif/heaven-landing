@@ -4,8 +4,18 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Heaven · Marketing sob medida para o seu negócio</title>
+
+<!-- Resource hints for faster initial paint -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://www.youtube.com" />
+<link rel="preconnect" href="https://i.ytimg.com" />
+<link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
+
+<!-- Preload critical visuals -->
+<link rel="preload" as="image" href="assets/hero-ceo.webp" fetchpriority="high" />
+<link rel="preload" as="image" href="assets/heaven-logo.webp" />
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
@@ -15,7 +25,7 @@
 <nav class="nav" id="nav">
   <div class="container nav-inner">
     <a class="logo" href="#top" aria-label="Heaven Agência">
-      <img src="assets/heaven-logo.webp" alt="Heaven Agência" />
+      <img src="assets/heaven-logo.webp" alt="Heaven Agência" decoding="async" />
     </a>
     <a class="nav-cta" href="forms/">
       Agendar diagnóstico
@@ -26,7 +36,7 @@
 
 <!-- ============ HERO ============ -->
 <header class="hero hero-banner" id="top">
-  <img class="hero-bg" src="assets/hero-ceo.webp" alt="" aria-hidden="true" />
+  <img class="hero-bg" src="assets/hero-ceo.webp" alt="" aria-hidden="true" fetchpriority="high" decoding="async" />
   <div class="hero-fade"></div>
   <div class="container hero-content">
     <div>
@@ -90,6 +100,7 @@
           frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerpolicy="strict-origin-when-cross-origin"
+          loading="lazy"
           allowfullscreen></iframe>
       </div>
     </div>
@@ -105,8 +116,8 @@
     </div>
 
     <div class="method-image reveal">
-      <img class="method-desktop" src="assets/metodo-heaven-desktop.webp" alt="Método Heaven: Engajamento, Aquisição, Venda e Remarketing" />
-      <img class="method-mobile" src="assets/metodo-heaven-mobile.webp" alt="Método Heaven: Engajamento, Aquisição, Venda e Remarketing" />
+      <img class="method-desktop" src="assets/metodo-heaven-desktop.webp" alt="Método Heaven: Engajamento, Aquisição, Venda e Remarketing" loading="lazy" decoding="async" />
+      <img class="method-mobile" src="assets/metodo-heaven-mobile.webp" alt="Método Heaven: Engajamento, Aquisição, Venda e Remarketing" loading="lazy" decoding="async" />
     </div>
 
     <div style="text-align:center" class="reveal">
@@ -150,7 +161,7 @@
 
 <!-- ============ SOBRE ============ -->
 <section class="about" id="sobre">
-  <img class="about-bg" src="assets/sobre-ceo.webp" alt="" aria-hidden="true" />
+  <img class="about-bg" src="assets/sobre-ceo.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
   <div class="about-fade"></div>
   <div class="container about-content">
     <div class="reveal">
@@ -210,6 +221,7 @@
           frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerpolicy="strict-origin-when-cross-origin"
+          loading="lazy"
           allowfullscreen></iframe>
       </div>
       <div class="feedback-card bg-2 reveal">
@@ -220,6 +232,7 @@
           frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerpolicy="strict-origin-when-cross-origin"
+          loading="lazy"
           allowfullscreen></iframe>
       </div>
       <div class="feedback-card bg-3 reveal">
@@ -230,6 +243,7 @@
           frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerpolicy="strict-origin-when-cross-origin"
+          loading="lazy"
           allowfullscreen></iframe>
       </div>
     </div>
@@ -289,12 +303,14 @@
 <footer>
   <div class="container">
     <a class="logo" href="#top" aria-label="Heaven Agência">
-      <img src="assets/heaven-logo.webp" alt="Heaven Agência" />
+      <img src="assets/heaven-logo.webp" alt="Heaven Agência" decoding="async" />
     </a>
     <p>© 2026 Heaven Agência de Marketing · Recife · João Pessoa</p>
   </div>
 </footer>
 
-<script src="app.js"></script>
+<!-- Lenis: smooth scroll w/ inertia (graceful fallback to native if CDN fails) -->
+<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js" defer></script>
+<script src="app.js" defer></script>
 </body>
 </html>

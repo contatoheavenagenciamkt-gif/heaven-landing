@@ -1,3 +1,33 @@
+/* ============ Smooth scroll (Lenis) — graceful fallback ============ */
+(function initSmoothScroll() {
+  if (typeof window.Lenis === 'undefined') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  try {
+    const lenis = new window.Lenis({
+      duration: 1.05,
+      easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      smoothTouch: false,
+      wheelMultiplier: 1,
+      touchMultiplier: 1.2
+    });
+    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+    /* Smooth-scroll anchor links (e.g. nav CTAs back to top) */
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const id = a.getAttribute('href');
+        if (id.length < 2) return;
+        const target = document.querySelector(id);
+        if (!target) return;
+        e.preventDefault();
+        lenis.scrollTo(target, { offset: -90, duration: 1.4 });
+      });
+    });
+    window.__lenis = lenis;
+  } catch (e) { /* fall back to native scrolling */ }
+})();
+
 /* ============ NAV scroll ============ */
 const nav = document.getElementById('nav');
 const onScroll = () => {
