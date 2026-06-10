@@ -1,47 +1,47 @@
 /* ===========================================================================
- * Painel de acessos (/admin). Login simples + dashboard completo lendo as views
- * agregadas (linkbio_daily, linkbio_sources_daily) via PostgREST + chave anon.
+ * Painel de acessos (/admin) — LOGIN REAL via Supabase Auth.
  *
- * Recortes: Hoje / 7 / 30 dias / Este mês / Mês passado / Personalizado, e
- * granularidade Dia ou Mês no gráfico. Mostra: visitas do site, acessos pelo
- * /linkbio vs diretos, cliques por link, visitas por página e origem (SEO).
+ * Segurança: NENHUMA credencial no front. A senha vive no Supabase (Auth);
+ * aqui o usuário digita e-mail/senha e o supabase-js autentica. Só depois de
+ * logado o navegador consegue ler as views (grant só p/ 'authenticated').
+ * A chave anon abaixo é pública por design (não dá acesso a nada sem login).
  * =========================================================================== */
 const SUPABASE_URL = "https://mkhiykxsfbcbybxhqlkj.supabase.co";
 const ANON =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1raGl5a3hzZmJjYnlieGhxbGtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1ODE3MTUsImV4cCI6MjA5MzE1NzcxNX0.6RfFBkjZ-TSpXkGzH0hbUzDE_5l1hi7s8tS3yczCWDI";
 
-// Acesso ao painel. A senha NÃO fica em texto: guardamos só o hash SHA-256.
-const ADMIN_EMAIL = "edson.juan.oliversilva@gmail.com";
-const ADMIN_PASS_HASH = "2a5812ce4fef7e120d7b158063601dc723cc8c8112af9383023cf8833b92cb75";
-
+const sb = window.supabase.createClient(SUPABASE_URL, ANON);
 const $ = (id) => document.getElementById(id);
 const PATH_LABELS = { "/": "Home (site)", "/linkbio": "Link na Bio", "/forms": "Funil", "/em-breve": "Em breve" };
 
-/* ----------------------------- Login -------------------------------------- */
-async function sha256(str) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
+/* ------------------------------- Login ------------------------------------ */
 async function tryLogin() {
-  const email = $("g-email").value.trim().toLowerCase();
-  const hash = await sha256($("g-pass").value);
-  if (email === ADMIN_EMAIL && hash === ADMIN_PASS_HASH) {
-    sessionStorage.setItem("heaven_admin_ok", "1");
-    showDash();
-  } else {
+  $("g-err").classList.add("hidden");
+  $("g-btn").disabled = true;
+  $("g-btn").textContent = "Entrando…";
+  const email = $("g-email").value.trim();
+  const password = $("g-pass").value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  $("g-btn").disabled = false;
+  $("g-btn").textContent = "Entrar";
+  if (error) {
+    $("g-err").textContent = "E-mail ou senha incorretos.";
     $("g-err").classList.remove("hidden");
+    return;
   }
+  showDash();
 }
 
-function showGate() {
-  $("gate").classList.remove("hidden");
-  $("dash").classList.add("hidden");
+function bindGate() {
   $("g-btn").addEventListener("click", tryLogin);
   $("g-pass").addEventListener("keydown", (e) => { if (e.key === "Enter") tryLogin(); });
   $("g-email").addEventListener("keydown", (e) => { if (e.key === "Enter") $("g-pass").focus(); });
 }
 
+function showGate() {
+  $("gate").classList.remove("hidden");
+  $("dash").classList.add("hidden");
+}
 function showDash() {
   $("gate").classList.add("hidden");
   $("dash").classList.remove("hidden");
@@ -68,58 +68,42 @@ function setPeriod(key) {
     from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     to = new Date(now.getFullYear(), now.getMonth(), 0);
   }
-  state.from = ymd(from);
-  state.to = ymd(to);
-  $("from").value = state.from;
-  $("to").value = state.to;
+  state.from = ymd(from); state.to = ymd(to);
+  $("from").value = state.from; $("to").value = state.to;
   highlightPeriod(key);
   load();
 }
-
 function highlightPeriod(key) {
   document.querySelectorAll("#periods .btn").forEach((b) => b.classList.toggle("active", b.dataset.k === key));
 }
 
+let controlsReady = false;
 function initControls() {
-  const periods = [
-    ["today", "Hoje"], ["7d", "7 dias"], ["30d", "30 dias"], ["month", "Este mês"], ["lastmonth", "Mês passado"],
-  ];
+  if (controlsReady) return;
+  controlsReady = true;
+  const periods = [["today","Hoje"],["7d","7 dias"],["30d","30 dias"],["month","Este mês"],["lastmonth","Mês passado"]];
   $("periods").innerHTML = periods.map(([k, l]) => `<button class="btn sm" data-k="${k}">${l}</button>`).join("");
   document.querySelectorAll("#periods .btn").forEach((b) => b.addEventListener("click", () => setPeriod(b.dataset.k)));
 
-  const grans = [["auto", "Auto"], ["day", "Por dia"], ["month", "Por mês"]];
+  const grans = [["auto","Auto"],["day","Por dia"],["month","Por mês"]];
   $("grans").innerHTML = grans.map(([k, l]) => `<button class="btn sm" data-g="${k}">${l}</button>`).join("");
   document.querySelectorAll("#grans .btn").forEach((b) =>
     b.addEventListener("click", () => {
       state.gran = b.dataset.g;
       document.querySelectorAll("#grans .btn").forEach((x) => x.classList.toggle("active", x === b));
       load();
-    }),
-  );
+    }));
   document.querySelector('#grans .btn[data-g="auto"]').classList.add("active");
 
   $("apply").addEventListener("click", () => {
     if (!$("from").value || !$("to").value) return;
-    state.from = $("from").value;
-    state.to = $("to").value;
-    highlightPeriod("");
-    load();
+    state.from = $("from").value; state.to = $("to").value;
+    highlightPeriod(""); load();
   });
-  $("logout").addEventListener("click", () => {
-    sessionStorage.removeItem("heaven_admin_ok");
-    location.reload();
-  });
+  $("logout").addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); });
 }
 
 /* ------------------------------ Fetch ------------------------------------- */
-async function api(path) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
 let chart = null;
 
 async function load() {
@@ -127,19 +111,19 @@ async function load() {
   $("range-label").textContent = `Período: ${br(from)} a ${br(to)}`;
   $("state").textContent = "Carregando…";
 
-  let daily, sources;
-  try {
-    [daily, sources] = await Promise.all([
-      api(`linkbio_daily?select=day,kind,path,slug,total&day=gte.${from}&day=lte.${to}`),
-      api(`linkbio_sources_daily?select=day,source,total&day=gte.${from}&day=lte.${to}`),
-    ]);
-  } catch (e) {
+  const [dailyRes, srcRes] = await Promise.all([
+    sb.from("linkbio_daily").select("day,kind,path,slug,total").gte("day", from).lte("day", to),
+    sb.from("linkbio_sources_daily").select("day,source,total").gte("day", from).lte("day", to),
+  ]);
+  if (dailyRes.error || srcRes.error) {
+    const msg = (dailyRes.error || srcRes.error).message;
     $("state").textContent =
-      `Não consegui carregar (${e.message}). Rode o SQL atualizado (supabase/linkbio_tracking.sql) no Supabase do CRM e tente de novo.`;
+      `Não consegui carregar (${msg}). Confirme que rodou o SQL atualizado (views + grant p/ authenticated) no Supabase do CRM.`;
     return;
   }
+  const daily = dailyRes.data || [];
+  const sources = srcRes.data || [];
 
-  // ----- Cartões -----
   const visit = daily.filter((r) => r.kind === "visit");
   const click = daily.filter((r) => r.kind === "click");
   const sumT = (rows) => rows.reduce((s, r) => s + Number(r.total), 0);
@@ -148,14 +132,9 @@ async function load() {
   $("c-home").textContent = sumT(visit.filter((r) => r.path === "/"));
   $("c-clicks").textContent = sumT(click);
 
-  // ----- Por página -----
   renderRanked("t-pages", groupSum(visit, "path"), (k) => PATH_LABELS[k] || k, false);
-  // ----- Cliques por link -----
   renderRanked("t-links", groupSum(click.filter((r) => r.slug), "slug"), (k) => k, true);
-  // ----- Origens -----
   renderRanked("t-sources", groupSum(sources, "source"), (k) => k, false);
-
-  // ----- Gráfico -----
   drawChart(visit, from, to);
 
   $("state").textContent = daily.length ? "" : "Sem acessos neste período ainda.";
@@ -166,18 +145,13 @@ function groupSum(rows, key) {
   for (const r of rows) m.set(r[key], (m.get(r[key]) || 0) + Number(r.total));
   return [...m.entries()].sort((a, b) => b[1] - a[1]);
 }
-
 function renderRanked(tbodyId, entries, labelFn, green) {
   const max = entries.reduce((m, [, v]) => Math.max(m, v), 0) || 1;
   $(tbodyId).innerHTML = entries.length
-    ? entries
-        .map(
-          ([k, v]) => `<tr>
-            <td class="pathtag">${esc(labelFn(k))}</td>
-            <td><div class="bar ${green ? "green" : ""}"><i style="width:${Math.round((v / max) * 100)}%"></i></div></td>
-            <td class="num">${v}</td></tr>`,
-        )
-        .join("")
+    ? entries.map(([k, v]) => `<tr>
+        <td class="pathtag">${esc(labelFn(k))}</td>
+        <td><div class="bar ${green ? "green" : ""}"><i style="width:${Math.round((v / max) * 100)}%"></i></div></td>
+        <td class="num">${v}</td></tr>`).join("")
     : `<tr><td colspan="3" class="muted">Sem dados.</td></tr>`;
 }
 
@@ -191,7 +165,6 @@ function drawChart(visitRows, from, to) {
 
   const buckets = gran === "month" ? monthBuckets(from, to) : dayBuckets(from, to);
   const keyOf = (day) => (gran === "month" ? day.slice(0, 7) : day);
-
   const site = new Map(buckets.map((b) => [b, 0]));
   const link = new Map(buckets.map((b) => [b, 0]));
   for (const r of visitRows) {
@@ -200,7 +173,6 @@ function drawChart(visitRows, from, to) {
     site.set(k, site.get(k) + Number(r.total));
     if (r.path === "/linkbio") link.set(k, link.get(k) + Number(r.total));
   }
-
   const labels = buckets.map((b) => (gran === "month" ? brMonth(b) : br(b)));
   const data = {
     labels,
@@ -224,14 +196,12 @@ function drawChart(visitRows, from, to) {
 }
 
 function dayBuckets(from, to) {
-  const out = []; let d = new Date(from + "T00:00:00");
-  const end = new Date(to + "T00:00:00");
+  const out = []; let d = new Date(from + "T00:00:00"); const end = new Date(to + "T00:00:00");
   while (d <= end) { out.push(ymd(d)); d = addDays(d, 1); }
   return out;
 }
 function monthBuckets(from, to) {
-  const out = []; let d = new Date(from.slice(0, 7) + "-01T00:00:00");
-  const end = new Date(to.slice(0, 7) + "-01T00:00:00");
+  const out = []; let d = new Date(from.slice(0, 7) + "-01T00:00:00"); const end = new Date(to.slice(0, 7) + "-01T00:00:00");
   while (d <= end) { out.push(ymd(d).slice(0, 7)); d = new Date(d.getFullYear(), d.getMonth() + 1, 1); }
   return out;
 }
@@ -248,5 +218,5 @@ function esc(s) {
 }
 
 /* ------------------------------- Boot ------------------------------------- */
-if (sessionStorage.getItem("heaven_admin_ok") === "1") showDash();
-else showGate();
+bindGate();
+sb.auth.getSession().then(({ data }) => { if (data.session) showDash(); else showGate(); });

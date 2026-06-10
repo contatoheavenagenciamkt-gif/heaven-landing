@@ -13,21 +13,21 @@
 const LINKS = [
   {
     slug: "agencia",
-    img: "/assets/linkbio-agencia.jpg",
+    img: "/assets/linkbio-agencia.webp",
     alt: "Pare de fazer tudo sozinho — conheça a Heaven Agência",
     href: "/",
     newTab: false,
   },
   {
     slug: "mentoria",
-    img: "/assets/linkbio-mentoria.jpg",
+    img: "/assets/linkbio-mentoria.webp",
     alt: "Aprenda tudo que sua empresa precisa para crescer",
     href: "/em-breve/",
     newTab: false,
   },
   {
     slug: "whatsapp",
-    img: "/assets/linkbio-whatsapp.jpg",
+    img: "/assets/linkbio-whatsapp.webp",
     alt: "Ficou com alguma dúvida? Fale comigo no WhatsApp",
     href: "https://wa.me/558196526901?text=Ol%C3%A1!%20Fiquei%20com%20uma%20d%C3%BAvida%20e%20gostaria%20de%20falar%20com%20voc%C3%AA.",
   },
@@ -48,7 +48,8 @@ function renderLinks() {
 
   LINKS.forEach((link, i) => {
     const a = document.createElement("a");
-    a.className = "lb-card";
+    a.className = "lb-card lb-anim";
+    a.style.setProperty("--d", 250 + i * 120 + "ms"); // entrada escalonada
     a.href = link.href;
     a.setAttribute("aria-label", link.alt || link.slug);
     const external = /^https?:\/\//.test(link.href);
@@ -62,8 +63,15 @@ function renderLinks() {
     img.className = "lb-img";
     img.src = link.img;
     img.alt = link.alt || "";
-    img.loading = i === 0 ? "eager" : "lazy";
+    // 1ª imagem com prioridade; demais carregam sob demanda (lazy).
+    if (i === 0) { img.loading = "eager"; img.fetchPriority = "high"; }
+    else { img.loading = "lazy"; }
     img.decoding = "async";
+    // Fade-in quando a imagem termina de carregar (evita "flash" feio).
+    const reveal = () => img.classList.add("loaded");
+    if (img.complete) reveal();
+    else img.addEventListener("load", reveal);
+    img.addEventListener("error", reveal); // não deixa card invisível se falhar
     a.appendChild(img);
 
     a.addEventListener("click", () => trackClick(link.slug, link.href));

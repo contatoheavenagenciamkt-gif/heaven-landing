@@ -72,9 +72,14 @@ select date_trunc('month', occurred_at)::date as month, kind, slug, count(*)::bi
 from public.linkbio_events
 group by 1, 2, 3;
 
-grant select on public.linkbio_daily          to anon, authenticated;
-grant select on public.linkbio_sources_daily  to anon, authenticated;
-grant select on public.linkbio_monthly        to anon, authenticated;
+-- Leitura dos números é PRIVADA: só quem está logado (Supabase Auth) no /admin.
+-- Revogamos o acesso público (anon) e liberamos só p/ 'authenticated'.
+revoke select on public.linkbio_daily         from anon;
+revoke select on public.linkbio_sources_daily from anon;
+revoke select on public.linkbio_monthly       from anon;
+grant  select on public.linkbio_daily          to authenticated;
+grant  select on public.linkbio_sources_daily  to authenticated;
+grant  select on public.linkbio_monthly        to authenticated;
 
 -- =============================================================================
 -- Conferir depois de gerar alguns acessos:

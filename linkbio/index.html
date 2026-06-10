@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://mkhiykxsfbcbybxhqlkj.supabase.co" />
-<link rel="preload" as="image" href="/assets/linkbio-perfil.jpg" />
+<link rel="preload" as="image" href="/assets/linkbio-perfil.webp" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 <style>
@@ -103,20 +103,42 @@
     font-size: 12px;
     opacity: 0.8;
   }
+
+  /* ----- Entrada suave (stagger) ----- */
+  @keyframes lbIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .lb-anim {
+    opacity: 0;
+    animation: lbIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  /* ----- Skeleton + fade-in das imagens (evita layout shift e flash) ----- */
+  .lb-card { background: var(--surface); }
+  .lb-img {
+    opacity: 0;
+    transition: opacity 0.45s ease;
+  }
+  .lb-img.loaded { opacity: 1; }
+
   @media (prefers-reduced-motion: reduce) {
     .lb-card { transition: none; }
+    .lb-anim { animation: none; opacity: 1; }
+    .lb-img { transition: none; opacity: 1; }
   }
 </style>
 </head>
 <body>
   <main class="lb-wrap">
-    <img class="lb-logo" src="/assets/linkbio-perfil.jpg" alt="Juan Oliver" decoding="async" />
-    <h1 class="lb-name">Juan Oliver</h1>
-    <p class="lb-handle">@juan.oliver_</p>
+    <img class="lb-logo lb-anim" style="--d:0ms" src="/assets/linkbio-perfil.webp" alt="Juan Oliver" fetchpriority="high" decoding="async" />
+    <h1 class="lb-name lb-anim" style="--d:90ms">Juan Oliver</h1>
+    <p class="lb-handle lb-anim" style="--d:160ms">@juan.oliver_</p>
 
     <nav class="lb-links" id="linkbio-links" aria-label="Links da Heaven"></nav>
 
-    <p class="lb-foot">© Heaven Agência de Marketing</p>
+    <p class="lb-foot lb-anim" style="--d:700ms">© Heaven Agência de Marketing</p>
   </main>
 
   <script src="/track.js" defer></script>
