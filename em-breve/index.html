@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Heaven Agência · Em breve</title>
+<meta name="robots" content="noindex" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preload" as="image" href="../assets/heaven-logo.webp" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bg: #07070b; --surface: #14161f; --border: rgba(80,130,220,.18);
+    --text: #e9edf5; --text-dim: #a4abbc; --accent: #3b9eff; --gold: #d9a544;
+    --accent-glow: rgba(59,158,255,.35);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(120% 60% at 50% -10%, rgba(59,158,255,.12), transparent 60%), var(--bg);
+    color: var(--text); font-family: "Inter", system-ui, sans-serif;
+    min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 40px 22px;
+  }
+  .box { max-width: 440px; display: flex; flex-direction: column; align-items: center; }
+  .logo {
+    width: 80px; height: 80px; object-fit: contain; border-radius: 22px;
+    background: var(--surface); padding: 10px; box-shadow: 0 0 60px -12px var(--accent-glow);
+  }
+  .tag {
+    margin-top: 26px; font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--gold); font-weight: 600;
+  }
+  h1 {
+    font-family: "Outfit","Inter",sans-serif; font-weight: 700; font-size: clamp(30px, 8vw, 44px);
+    letter-spacing: -.02em; margin-top: 10px; line-height: 1.05;
+  }
+  p { color: var(--text-dim); font-size: 15px; line-height: 1.6; margin-top: 16px; }
+  .back {
+    margin-top: 30px; display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 14px; border: 1px solid var(--border);
+    color: var(--text); text-decoration: none; font-size: 14px; font-weight: 500;
+    transition: border-color .18s ease, transform .18s ease;
+  }
+  .back:hover { border-color: var(--accent); transform: translateY(-2px); }
+</style>
+</head>
+<body>
+  <main class="box">
+    <img class="logo" src="../assets/heaven-logo.webp" alt="Heaven Agência" decoding="async" />
+    <span class="tag">Em breve</span>
+    <h1>Estamos preparando<br />algo especial.</h1>
+    <p>Esse conteúdo ainda está sendo finalizado. Volte em breve — vai valer a pena.</p>
+    <a class="back" href="/linkbio/">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Voltar
+    </a>
+  </main>
+</body>
+</html>
