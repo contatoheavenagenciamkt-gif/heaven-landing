@@ -1,44 +1,45 @@
-# Link na Bio — `heavenagencia.com/linkbio`
+# Link na Bio + Tracking do site — `heavenagencia.com`
 
-Página de links (estilo link-in-bio) + tracking de **visitas** e **cliques por link**,
-com painel próprio. Tudo estático; os números são gravados no **Supabase do CRM**
-(mesmo projeto que o funil `/forms/` usa).
+Página de links (`/linkbio`) + **tracking de acessos do site inteiro** com painel
+próprio em `/admin`. Site estático; os números são gravados no **Supabase do CRM**
+(projeto `mkhiykxsfbcbybxhqlkj`, o mesmo do funil `/forms/`).
 
 ## Arquivos
 
 | Arquivo | O quê |
 |---|---|
-| `index.html` | A página pública (`/linkbio/`). |
-| `linkbio.js` | **Onde você edita os links** (array `LINKS`) + tracking. |
-| `config.js`  | URL do Supabase + chave anon + senha opcional do painel. |
-| `stats.html` / `stats.js` | Painel de acessos (`/linkbio/stats.html`). |
-| `../supabase/linkbio_tracking.sql` | SQL a rodar **uma vez** no Supabase do CRM. |
+| `/track.js` | Tracker do **site inteiro** (pageview automático + `HeavenTrack.event`). Incluído em todas as páginas públicas. |
+| `linkbio/index.html` | A página pública `/linkbio`. |
+| `linkbio/linkbio.js` | **Onde você edita os links** (array `LINKS`) + clique. |
+| `admin/index.html` · `admin/admin.js` | Painel de acessos em `/admin` (login + dashboard). |
+| `em-breve/index.html` | Página "em breve". |
+| `supabase/linkbio_tracking.sql` | SQL a rodar no Supabase do CRM (tabela + views). |
 
 ## Setup (uma vez)
 
-1. **Banco:** no Supabase do CRM (`mkhiykxsfbcbybxhqlkj`) → SQL Editor → cole e rode
-   `supabase/linkbio_tracking.sql`.
-2. **Chave:** Project Settings → API → copie a **`anon public`** e cole em
-   `config.js` → `SUPABASE_ANON_KEY`. (É pública por natureza, não é segredo.)
-3. *(Opcional)* defina `STATS_PASSWORD` em `config.js` para proteger o painel.
-4. Deploy (commit + push). A página fica em `heavenagencia.com/linkbio`.
+1. **Banco:** Supabase do CRM (`mkhiykxsfbcbybxhqlkj`) → SQL Editor → rode
+   `supabase/linkbio_tracking.sql` (idempotente, pode rodar de novo a cada atualização).
+2. Pronto — a chave anon já está embutida no `/track.js` e no `admin/admin.js`
+   (é pública por design).
 
-## Editar os links
+## Editar os links do /linkbio
 
-Mexa só no array `LINKS` em `linkbio.js`. Coloque as imagens em `../assets/` e aponte:
+Mexa só no array `LINKS` em `linkbio/linkbio.js`. Imagens em `/assets`, caminhos absolutos:
 
 ```js
-{ slug: "whatsapp", img: "../assets/meu-card.webp", alt: "Fale no WhatsApp", href: "https://wa.me/55..." }
+{ slug: "whatsapp", img: "/assets/meu-card.jpg", alt: "Fale no WhatsApp", href: "https://wa.me/55..." }
 ```
 
-- `slug` é o nome que aparece no painel — curto e único.
-- `href` pode ser link externo (abre em nova aba) ou interno como `/forms/`.
+> ⚠️ Sempre use caminhos **absolutos** (`/assets/...`, `/linkbio/...`). Caminhos
+> relativos quebram quando a Vercel serve a página sem barra final.
 
-## Ver os números
+## Painel `/admin`
 
-Abra `heavenagencia.com/linkbio/stats.html`: visitas e cliques do mês, cliques por
-link e histórico mensal. Os dados são só **contagens agregadas** (a view
-`linkbio_monthly`), sem nenhum dado pessoal.
+`heavenagencia.com/admin` — login (e-mail + senha). Mostra, por período (Hoje, 7/30
+dias, mês, ou personalizado) e por dia/mês:
+- Visitas do site, acessos pelo **Link na Bio** vs **diretos na home**, cliques por link;
+- Visitas **por página** e **origem do tráfego** (Google, Instagram, direto) — útil pra SEO.
 
-> Endurecimento opcional: se quiser que nem as contagens fiquem públicas, dá pra
-> trocar a leitura por uma Edge Function protegida por token (como a `lead-webhook`).
+A senha fica só como **hash SHA-256** no código; e o painel lê apenas **views agregadas**
+(contagens, sem dado pessoal). Para travar de verdade o acesso aos números, dá pra migrar
+a leitura para uma Edge Function autenticada depois.
