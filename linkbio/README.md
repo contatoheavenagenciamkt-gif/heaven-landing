@@ -1,8 +1,8 @@
 # Link na Bio + Tracking do site — `heavenagencia.com`
 
 Página de links (`/linkbio`) + **tracking de acessos do site inteiro** com painel
-próprio em `/admin`. Site estático; os números são gravados no **Supabase do CRM**
-(projeto `mkhiykxsfbcbybxhqlkj`, o mesmo do funil `/forms/`).
+próprio em `/admin`. O front é estático; os números são gravados no **MySQL da VPS**
+através da API em `/api`.
 
 ## Arquivos
 
@@ -13,14 +13,14 @@ próprio em `/admin`. Site estático; os números são gravados no **Supabase do
 | `linkbio/linkbio.js` | **Onde você edita os links** (array `LINKS`) + clique. |
 | `admin/index.html` · `admin/admin.js` | Painel de acessos em `/admin` (login + dashboard). |
 | `em-breve/index.html` | Página "em breve". |
-| `supabase/linkbio_tracking.sql` | SQL a rodar no Supabase do CRM (tabela + views). |
+| `mysql/schema.sql` | Banco. Rodar uma vez na VPS. |
+| `api/` | A API que grava e lê os números. |
 
 ## Setup (uma vez)
 
-1. **Banco:** Supabase do CRM (`mkhiykxsfbcbybxhqlkj`) → SQL Editor → rode
-   `supabase/linkbio_tracking.sql` (idempotente, pode rodar de novo a cada atualização).
-2. Pronto — a chave anon já está embutida no `/track.js` e no `admin/admin.js`
-   (é pública por design).
+Está tudo em **[deploy/README.md](../deploy/README.md)**: rodar o `mysql/schema.sql`,
+subir a API e apontar o nginx. Nenhuma chave fica no navegador — quem tem a senha do
+banco é o servidor.
 
 ## Editar os links do /linkbio
 
@@ -31,15 +31,16 @@ Mexa só no array `LINKS` em `linkbio/linkbio.js`. Imagens em `/assets`, caminho
 ```
 
 > ⚠️ Sempre use caminhos **absolutos** (`/assets/...`, `/linkbio/...`). Caminhos
-> relativos quebram quando a Vercel serve a página sem barra final.
+> relativos quebram quando o servidor serve a página sem barra final.
 
 ## Painel `/admin`
 
-`heavenagencia.com/admin` — login (e-mail + senha). Mostra, por período (Hoje, 7/30
+`heavenagencia.com/admin` — login com e-mail e senha. Mostra, por período (Hoje, 7/30
 dias, mês, ou personalizado) e por dia/mês:
 - Visitas do site, acessos pelo **Link na Bio** vs **diretos na home**, cliques por link;
 - Visitas **por página** e **origem do tráfego** (Google, Instagram, direto) — útil pra SEO.
 
-A senha fica só como **hash SHA-256** no código; e o painel lê apenas **views agregadas**
-(contagens, sem dado pessoal). Para travar de verdade o acesso aos números, dá pra migrar
-a leitura para uma Edge Function autenticada depois.
+A senha fica no MySQL como **hash bcrypt**, nunca em texto e nunca no código. O login
+devolve um cookie `httpOnly`, que o JavaScript da página não consegue ler — então um XSS
+não rouba a sessão. O painel lê apenas **views agregadas** (contagens); o IP do visitante
+é guardado só como hash, nunca em claro.

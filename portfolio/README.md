@@ -22,12 +22,12 @@ Também dá pra chegar pelo botão **Portfólio** no topo do `/admin`.
 
 ### Antes da primeira vez
 
-Rode uma vez o arquivo `supabase/portfolio.sql` no SQL Editor do Supabase
-(projeto `mkhiykxsfbcbybxhqlkj`, o mesmo do funil e do tracking). Ele cria a
-tabela, as permissões e já deixa a Marévia cadastrada.
+Rode uma vez o `mysql/schema.sql` na VPS e suba a API — passo a passo em
+[deploy/README.md](../deploy/README.md). O script cria as tabelas e já deixa a
+Marévia cadastrada.
 
-Enquanto o SQL não rodar, o `/admin/portfolio/` mostra um aviso explicando isso —
-não quebra.
+Enquanto a API não estiver de pé, o `/admin/portfolio/` mostra um aviso
+explicando o que falta — não quebra.
 
 ## O que cada campo faz
 
@@ -73,11 +73,11 @@ const PATH_LABELS = { "/": "Home (site)", "/linkbio": "Link na Bio", "/forms": "
 | Arquivo | Para quê |
 |---|---|
 | `portfolio/index.html` | Estrutura e estilo da página pública. |
-| `portfolio/portfolio.js` | Busca no Supabase e monta os cards. |
-| `portfolio/projetos.js` | **Reserva.** Só é usado se o banco não responder. |
+| `portfolio/portfolio.js` | Busca em `/api/portfolio` e monta os cards. |
+| `portfolio/projetos.js` | **Reserva.** Só é usado se a API não responder. |
 | `admin/portfolio/` | O painel de cadastro. |
-| `supabase/portfolio.sql` | A tabela e as permissões. Rode uma vez. |
+| `api/rotas/portfolio.js` | As rotas de leitura e escrita. |
+| `mysql/schema.sql` | As tabelas. Rode uma vez na VPS. |
 
-O `projetos.js` existe como rede de segurança: se o Supabase cair ou a tabela
-ainda não existir, a página mostra o que estiver ali em vez de ficar em branco na
-frente de um cliente.
+O `projetos.js` existe como rede de segurança: se a API cair, a página mostra o
+que estiver ali em vez de ficar em branco na frente de um cliente.

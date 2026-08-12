@@ -1,0 +1,44 @@
+# =============================================================================
+# systemd — mantém a API de pé e sobe sozinha depois de reboot
+# =============================================================================
+#   sudo cp deploy/heaven-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now heaven-api
+#   sudo systemctl status heaven-api
+#   sudo journalctl -u heaven-api -f      # acompanhar o log
+# =============================================================================
+
+[Unit]
+Description=Heaven API (portfolio, tracking, leads)
+Documentation=https://github.com/contatoheavenagenciamkt-gif/heaven-landing
+After=network.target mysql.service mariadb.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/heaven/api
+EnvironmentFile=/var/www/heaven/api/.env
+ExecStart=/usr/bin/node server.js
+
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=heaven-api
+
+# --- Contenção -------------------------------------------------------------
+# Se a API for comprometida um dia, estas linhas limitam o estrago: ela não
+# escreve fora do que precisa nem ganha privilégio novo.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/heaven/api
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

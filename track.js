@@ -6,15 +6,14 @@
  *   caminho da página (path) e a origem (referer) — assim o /admin separa quem
  *   veio do /linkbio, quem entrou direto no site e de onde (Google, Instagram…).
  * - Expõe window.HeavenTrack.event(kind, extra) para eventos extras (ex.: clique
- *   nos cards do link na bio).
+ *   nos cards do link na bio e do portfólio).
  *
- * Grava direto no Supabase do CRM (PostgREST + chave anon, pública por design).
+ * Grava na API da própria VPS (/api/eventos), que escreve no MySQL. Nenhuma
+ * credencial no navegador: quem tem a senha do banco é o servidor.
  * `keepalive` garante o envio mesmo quando o clique já está saindo da página.
  * =========================================================================== */
 (function () {
-  var SUPABASE_URL = "https://mkhiykxsfbcbybxhqlkj.supabase.co";
-  var ANON =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1raGl5a3hzZmJjYnlieGhxbGtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1ODE3MTUsImV4cCI6MjA5MzE1NzcxNX0.6RfFBkjZ-TSpXkGzH0hbUzDE_5l1hi7s8tS3yczCWDI";
+  var API = "/api/eventos";
 
   // Normaliza o caminho: remove barra final (mantém "/") para não duplicar
   // "/linkbio" e "/linkbio/" nas estatísticas.
@@ -27,22 +26,20 @@
     if (!kind) return;
     try {
       var body = {
-        kind: kind,
-        path: currentPath(),
+        tipo: kind,
+        caminho: currentPath(),
         referer: document.referrer || null,
-        user_agent: navigator.userAgent || null,
       };
-      if (extra) for (var k in extra) body[k] = extra[k];
+      if (extra) {
+        if (extra.slug) body.slug = extra.slug;
+        if (extra.destination) body.destino = extra.destination;
+        if (extra.destino) body.destino = extra.destino;
+      }
 
-      fetch(SUPABASE_URL + "/rest/v1/linkbio_events", {
+      fetch(API, {
         method: "POST",
         keepalive: true,
-        headers: {
-          "Content-Type": "application/json",
-          apikey: ANON,
-          Authorization: "Bearer " + ANON,
-          Prefer: "return=minimal",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }).catch(function () {});
     } catch (e) {
@@ -50,7 +47,7 @@
     }
   }
 
-  window.HeavenTrack = { event: event, supabaseUrl: SUPABASE_URL, anonKey: ANON };
+  window.HeavenTrack = { event: event };
 
   // Pageview automático.
   if (document.readyState === "loading") {

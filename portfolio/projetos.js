@@ -1,9 +1,9 @@
 /* ===========================================================================
  * Heaven · Portfólio — LISTA DE RESERVA.
  *
- * O portfólio de verdade é cadastrado em /admin/portfolio/ e vive no Supabase.
- * Este arquivo só entra em ação quando o banco não responde ou a tabela ainda
- * não foi criada — pra a página não ficar em branco na frente de um cliente.
+ * O portfólio de verdade é cadastrado em /admin/portfolio/ e vive no MySQL da
+ * VPS. Este arquivo só entra em ação quando a API não responde — pra a página
+ * não ficar em branco na frente de um cliente.
  *
  * Ou seja: no dia a dia você NÃO precisa editar isto. Use o painel.
  *

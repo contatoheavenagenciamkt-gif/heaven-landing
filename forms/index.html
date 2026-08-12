@@ -401,7 +401,9 @@
   /* ============================================================
      CONFIGURAÇÃO DO FUNIL — chat conversacional
      ============================================================ */
-  const WEBHOOK_URL = 'https://mkhiykxsfbcbybxhqlkj.supabase.co/functions/v1/lead-webhook?token=3465ec6e-6dfb-4894-a9ed-a6232ecba255';
+  /* API da propria VPS. Mesma origem do site: sem token no front, sem CORS,
+     e nada de credencial exposta. A API grava na tabela `leads` do MySQL. */
+  const WEBHOOK_URL = '/api/leads';
 
   const sessionId = (crypto.randomUUID && crypto.randomUUID()) ||
     `s_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -549,12 +551,13 @@
         navigator.sendBeacon(WEBHOOK_URL, new Blob([body], { type: 'application/json' }));
         return;
       }
+      /* Sem 'no-cors': a API e mesma origem agora. Com no-cors o navegador
+         rebaixaria o Content-Type para text/plain e o corpo chegaria vazio. */
       fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body,
-        keepalive: true,
-        mode: 'no-cors'
+        keepalive: true
       }).catch(err => console.warn('Lead webhook send failed', err));
     } catch (e) {
       console.warn('sendLead error', e);

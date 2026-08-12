@@ -1,35 +1,54 @@
 /* ===========================================================================
- * Painel de acessos (/admin) — LOGIN REAL via Supabase Auth.
+ * Painel de acessos (/admin) — LOGIN REAL contra a API da VPS.
  *
- * Segurança: NENHUMA credencial no front. A senha vive no Supabase (Auth);
- * aqui o usuário digita e-mail/senha e o supabase-js autentica. Só depois de
- * logado o navegador consegue ler as views (grant só p/ 'authenticated').
- * A chave anon abaixo é pública por design (não dá acesso a nada sem login).
+ * Segurança: NENHUMA credencial no front. A senha vive no MySQL como hash
+ * bcrypt; aqui o usuário digita e-mail/senha, a API confere e devolve um cookie
+ * httpOnly. Esta página não consegue ler o cookie, então um XSS não rouba a
+ * sessão — e a senha do banco nunca sai do servidor.
  * =========================================================================== */
-const SUPABASE_URL = "https://mkhiykxsfbcbybxhqlkj.supabase.co";
-const ANON =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1raGl5a3hzZmJjYnlieGhxbGtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1ODE3MTUsImV4cCI6MjA5MzE1NzcxNX0.6RfFBkjZ-TSpXkGzH0hbUzDE_5l1hi7s8tS3yczCWDI";
-
-const sb = window.supabase.createClient(SUPABASE_URL, ANON);
 const $ = (id) => document.getElementById(id);
-const PATH_LABELS = { "/": "Home (site)", "/linkbio": "Link na Bio", "/forms": "Funil", "/em-breve": "Em breve" };
+const PATH_LABELS = {
+  "/": "Home (site)",
+  "/linkbio": "Link na Bio",
+  "/forms": "Funil",
+  "/em-breve": "Em breve",
+  "/portfolio": "Portfólio",
+};
+
+async function api(caminho, opcoes = {}) {
+  const r = await fetch("/api" + caminho, {
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    ...opcoes,
+  });
+  if (r.status === 401) { showGate(); throw new Error("nao_autenticado"); }
+  const texto = await r.text();
+  const dados = texto ? JSON.parse(texto) : null;
+  if (!r.ok) throw Object.assign(new Error(dados?.erro || "erro"), { codigo: dados?.erro });
+  return dados;
+}
 
 /* ------------------------------- Login ------------------------------------ */
 async function tryLogin() {
   $("g-err").classList.add("hidden");
   $("g-btn").disabled = true;
   $("g-btn").textContent = "Entrando…";
-  const email = $("g-email").value.trim();
-  const password = $("g-pass").value;
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  $("g-btn").disabled = false;
-  $("g-btn").textContent = "Entrar";
-  if (error) {
-    $("g-err").textContent = "E-mail ou senha incorretos.";
+  try {
+    await api("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email: $("g-email").value.trim(), senha: $("g-pass").value }),
+    });
+    showDash();
+  } catch (e) {
+    $("g-err").textContent =
+      e.codigo === "muitas_tentativas"
+        ? "Muitas tentativas. Espere 15 minutos."
+        : "E-mail ou senha incorretos.";
     $("g-err").classList.remove("hidden");
-    return;
+  } finally {
+    $("g-btn").disabled = false;
+    $("g-btn").textContent = "Entrar";
   }
-  showDash();
 }
 
 function bindGate() {
@@ -100,7 +119,10 @@ function initControls() {
     state.from = $("from").value; state.to = $("to").value;
     highlightPeriod(""); load();
   });
-  $("logout").addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); });
+  $("logout").addEventListener("click", async () => {
+    try { await api("/auth/logout", { method: "POST" }); } catch (e) { /* segue */ }
+    location.reload();
+  });
 }
 
 /* ------------------------------ Fetch ------------------------------------- */
@@ -111,18 +133,18 @@ async function load() {
   $("range-label").textContent = `Período: ${br(from)} a ${br(to)}`;
   $("state").textContent = "Carregando…";
 
-  const [dailyRes, srcRes] = await Promise.all([
-    sb.from("linkbio_daily").select("day,kind,path,slug,total").gte("day", from).lte("day", to),
-    sb.from("linkbio_sources_daily").select("day,source,total").gte("day", from).lte("day", to),
-  ]);
-  if (dailyRes.error || srcRes.error) {
-    const msg = (dailyRes.error || srcRes.error).message;
+  let daily, sources;
+  try {
+    const p = `?de=${from}&ate=${to}`;
+    [daily, sources] = await Promise.all([api("/stats/diarios" + p), api("/stats/origens" + p)]);
+  } catch (e) {
+    if (e.message === "nao_autenticado") return;
     $("state").textContent =
-      `Não consegui carregar (${msg}). Confirme que rodou o SQL atualizado (views + grant p/ authenticated) no Supabase do CRM.`;
+      "Não consegui carregar. Confira se a API está de pé na VPS (systemctl status heaven-api) e se o mysql/schema.sql já foi rodado.";
     return;
   }
-  const daily = dailyRes.data || [];
-  const sources = srcRes.data || [];
+  daily = daily || [];
+  sources = sources || [];
 
   const visit = daily.filter((r) => r.kind === "visit");
   const click = daily.filter((r) => r.kind === "click");
@@ -219,4 +241,4 @@ function esc(s) {
 
 /* ------------------------------- Boot ------------------------------------- */
 bindGate();
-sb.auth.getSession().then(({ data }) => { if (data.session) showDash(); else showGate(); });
+api("/auth/eu").then(showDash).catch(showGate);

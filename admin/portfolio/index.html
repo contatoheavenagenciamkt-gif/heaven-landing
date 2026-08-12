@@ -8,7 +8,6 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="preconnect" href="https://mkhiykxsfbcbybxhqlkj.supabase.co" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
 
 <style>
@@ -159,9 +158,9 @@
       </nav>
 
       <div id="setup" class="aviso hidden">
-        <strong>Tabela ainda não existe no Supabase.</strong><br />
-        Rode uma vez o arquivo <code>supabase/portfolio.sql</code> no SQL Editor do projeto e
-        recarregue esta página.
+        <strong>Não consegui falar com o banco.</strong><br />
+        Confira se a API está de pé na VPS (<code>systemctl status heaven-api</code>) e se o
+        <code>mysql/schema.sql</code> já foi rodado. Depois recarregue esta página.
       </div>
 
       <div class="topbar" style="margin-top:22px">
@@ -267,7 +266,6 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/admin/portfolio/portfolio-admin.js" defer></script>
 </body>
 </html>

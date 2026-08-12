@@ -2,10 +2,10 @@
  * Heaven · Portfólio — renderização da página pública.
  *
  * Fonte dos dados, nesta ordem:
- *   1. Supabase (tabela portfolio_projetos) — é o que o /admin/portfolio edita.
- *      A política de RLS entrega ao visitante SÓ os projetos publicados.
- *   2. Se o banco não responder ou a tabela não existir, cai no arquivo local
- *      /portfolio/projetos.js. A página nunca fica em branco por causa do banco.
+ *   1. API da VPS (/api/portfolio) — é o que o /admin/portfolio edita. A API
+ *      devolve ao visitante SÓ os projetos publicados.
+ *   2. Se a API não responder, cai no arquivo local /portfolio/projetos.js.
+ *      A página nunca fica em branco por causa de servidor fora do ar.
  *
  * Projeto sem `url` vira card "em preparação": não abre e não engana ninguém.
  * =========================================================================== */
@@ -13,9 +13,7 @@
   var grid = document.getElementById('pf-grid');
   if (!grid) return;
 
-  var SUPABASE_URL = 'https://mkhiykxsfbcbybxhqlkj.supabase.co';
-  var ANON =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1raGl5a3hzZmJjYnlieGhxbGtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1ODE3MTUsImV4cCI6MjA5MzE1NzcxNX0.6RfFBkjZ-TSpXkGzH0hbUzDE_5l1hi7s8tS3yczCWDI';
+  var API = '/api/portfolio';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -117,26 +115,19 @@
     grid.innerHTML = lista.map(normalizar).map(cartao).join('');
   }
 
-  /* Busca no Supabase via PostgREST. Sem SDK: a página pública fica leve. */
-  function buscarNoBanco() {
-    return fetch(
-      SUPABASE_URL +
-        '/rest/v1/portfolio_projetos?select=*&publicado=eq.true&order=ordem.asc,criado_em.desc',
-      { headers: { apikey: ANON, Authorization: 'Bearer ' + ANON } }
-    ).then(function (r) {
+  /* Busca na API da VPS. Sem SDK e sem credencial: a página pública fica leve. */
+  fetch(API, { headers: { Accept: 'application/json' } })
+    .then(function (r) {
       if (!r.ok) throw new Error('http ' + r.status);
       return r.json();
-    });
-  }
-
-  buscarNoBanco()
+    })
     .then(function (dados) {
-      // Banco respondeu mas está vazio: o arquivo local ainda pode ter conteúdo.
+      // API respondeu mas está vazia: o arquivo local ainda pode ter conteúdo.
       if (Array.isArray(dados) && dados.length) return pintar(dados);
       pintar(window.HEAVEN_PROJETOS || []);
     })
     .catch(function () {
-      // Banco fora do ar ou tabela ainda não criada — a página não pode cair junto.
+      // API fora do ar — a página não pode cair junto na frente de um cliente.
       pintar(window.HEAVEN_PROJETOS || []);
     });
 
