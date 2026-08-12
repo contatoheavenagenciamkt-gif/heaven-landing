@@ -57,7 +57,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ erro: 'erro_interno' });
 });
 
-const PORT = Number(process.env.PORT) || 3001;
+const PORT = Number(process.env.PORT) || 3025;
 const HOST = process.env.HOST || '127.0.0.1';
 
 (async () => {
