@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Heaven · Portfólio (admin)</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://mkhiykxsfbcbybxhqlkj.supabase.co" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  /* Mesmos tokens do /admin — a tela é irmã do painel de acessos. */
+  :root {
+    --bg:#07070b; --surface:#14161f; --surface-2:#1b1e2a; --border:rgba(80,130,220,.18);
+    --text:#e9edf5; --text-dim:#a4abbc; --text-mute:#6b7387;
+    --accent:#3b9eff; --emerald:#10b981; --gold:#d9a544; --danger:#fb7185;
+    --radius:16px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:radial-gradient(120% 60% at 50% -10%, rgba(59,158,255,.10), transparent 60%), var(--bg);
+    color:var(--text); font-family:"Inter",system-ui,sans-serif; min-height:100dvh; padding:32px 20px 80px;
+  }
+  .wrap { max-width:1040px; margin:0 auto; }
+  h1 { font-family:"Outfit","Inter",sans-serif; font-size:24px; letter-spacing:-.01em; }
+  .sub { color:var(--text-dim); font-size:14px; margin-top:4px; }
+  code { background:var(--surface-2); padding:1px 6px; border-radius:6px; font-size:.92em; }
+  .hidden { display:none !important; }
+  .muted { color:var(--text-dim); }
+
+  /* ----- Login (idêntico ao /admin) ----- */
+  .gate { max-width:340px; margin:14vh auto 0; text-align:center; }
+  .gate .logo { width:64px; height:64px; border-radius:16px; background:var(--surface); padding:8px; object-fit:contain; }
+  .gate h1 { margin-top:18px; font-size:20px; }
+  .gate p { color:var(--text-dim); font-size:13px; margin-top:6px; }
+  .field { margin-top:12px; text-align:left; }
+  .field label { font-size:12px; color:var(--text-dim); }
+  .field input, .field textarea, .field select {
+    width:100%; margin-top:5px; padding:11px 13px; border-radius:11px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:15px; font-family:inherit;
+  }
+  .field textarea { resize:vertical; min-height:84px; line-height:1.5; font-size:14px; }
+  .field .hint { display:block; font-size:11.5px; color:var(--text-mute); margin-top:4px; }
+  .gate .btn { width:100%; margin-top:14px; }
+  .err { color:var(--danger); font-size:13px; margin-top:12px; }
+
+  /* ----- Botões ----- */
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:7px; cursor:pointer;
+    padding:11px 16px; border-radius:11px; border:1px solid var(--border); background:var(--surface);
+    color:var(--text); font-size:14px; font-weight:500; font-family:inherit;
+    transition:border-color .15s, background .15s, color .15s;
+  }
+  .btn:hover { border-color:var(--accent); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn.primary { background:var(--accent); color:#04101f; border-color:var(--accent); font-weight:600; }
+  .btn.sm { padding:7px 12px; font-size:13px; }
+  .btn.danger { color:var(--danger); border-color:rgba(251,113,133,.35); }
+  .btn.danger:hover { background:rgba(251,113,133,.1); border-color:var(--danger); }
+  .btn.ok { color:var(--emerald); border-color:rgba(16,185,129,.4); }
+
+  /* ----- Topo ----- */
+  .topbar { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .topbar .acoes { display:flex; gap:8px; flex-wrap:wrap; }
+  .tabs { display:flex; gap:8px; margin:20px 0 4px; }
+  .tabs a {
+    padding:8px 14px; border-radius:10px; text-decoration:none; font-size:13.5px; font-weight:500;
+    color:var(--text-dim); border:1px solid transparent;
+  }
+  .tabs a.on { background:var(--surface); border-color:var(--border); color:var(--text); }
+  .tabs a:hover { color:var(--text); }
+
+  /* ----- Lista ----- */
+  .lista { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
+  .item {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px 18px; display:grid; grid-template-columns:56px minmax(0,1fr) auto; gap:16px; align-items:start;
+  }
+  @media (max-width:700px){ .item { grid-template-columns:1fr; } }
+  .swatch { width:56px; height:56px; border-radius:12px; border:1px solid var(--border); }
+  .item h3 { font-family:"Outfit","Inter",sans-serif; font-size:18px; font-weight:600; }
+  .item .seg { color:var(--text-mute); font-size:12px; letter-spacing:.06em; text-transform:uppercase; }
+  .item .tit { color:var(--text-dim); font-size:13.5px; margin-top:5px; }
+  .item .link { display:inline-block; margin-top:7px; font-size:12.5px; color:var(--accent); word-break:break-all; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+  .badge { font-size:11px; padding:3px 9px; border-radius:999px; background:var(--surface-2); color:var(--text-dim); border:1px solid var(--border); }
+  .badge.live { color:var(--emerald); border-color:rgba(16,185,129,.35); }
+  .badge.soon { color:var(--gold); border-color:rgba(217,165,68,.35); }
+  .badge.off { color:var(--text-mute); }
+  .item .col-acoes { display:flex; flex-direction:column; gap:7px; min-width:130px; }
+  @media (max-width:700px){ .item .col-acoes { flex-direction:row; flex-wrap:wrap; min-width:0; } }
+
+  /* ----- Formulário ----- */
+  .form {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px 20px 22px; margin-top:20px;
+  }
+  .form h2 { font-family:"Outfit","Inter",sans-serif; font-size:18px; font-weight:600; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  @media (max-width:700px){ .grid2, .grid3 { grid-template-columns:1fr; } }
+  .form-acoes { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; align-items:center; }
+  .cores { display:flex; gap:10px; align-items:center; }
+  .cores input[type=color] { width:46px; height:42px; padding:2px; border-radius:10px; border:1px solid var(--border); background:var(--surface); cursor:pointer; }
+  .check { display:flex; align-items:center; gap:9px; margin-top:16px; font-size:14px; cursor:pointer; }
+  .check input { width:17px; height:17px; accent-color:var(--accent); cursor:pointer; }
+
+  .state { color:var(--text-dim); font-size:14px; margin-top:18px; }
+  .vazio {
+    border:1px dashed var(--border); border-radius:var(--radius); padding:52px 24px;
+    text-align:center; color:var(--text-dim); font-size:14px; margin-top:20px;
+  }
+  .vazio strong { display:block; color:var(--text); font-size:16px; margin-bottom:6px; }
+  .aviso {
+    border:1px solid rgba(217,165,68,.35); background:rgba(217,165,68,.07);
+    border-radius:12px; padding:13px 15px; margin-top:18px; font-size:13.5px; color:var(--text-dim);
+  }
+  .aviso strong { color:var(--gold); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- ===== LOGIN ===== -->
+    <div id="gate" class="gate hidden">
+      <img class="logo" src="/assets/heaven-logo.webp" alt="Heaven" />
+      <h1>Portfólio</h1>
+      <p>Acesso restrito.</p>
+      <div class="field">
+        <label for="g-email">E-mail</label>
+        <input id="g-email" type="email" autocomplete="username" placeholder="seu@email.com" />
+      </div>
+      <div class="field">
+        <label for="g-pass">Senha</label>
+        <input id="g-pass" type="password" autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      <button id="g-btn" class="btn primary">Entrar</button>
+      <p id="g-err" class="err hidden">E-mail ou senha incorretos.</p>
+    </div>
+
+    <!-- ===== PAINEL ===== -->
+    <div id="painel" class="hidden">
+      <div class="topbar">
+        <div>
+          <h1>Portfólio</h1>
+          <p class="sub">Cada projeto vira um card em <code>/portfolio/</code> — a página que você envia.</p>
+        </div>
+        <div class="acoes">
+          <a class="btn sm" href="/portfolio/" target="_blank" rel="noopener">Ver página</a>
+          <button id="logout" class="btn sm">Sair</button>
+        </div>
+      </div>
+
+      <nav class="tabs">
+        <a href="/admin/">Acessos</a>
+        <a href="/admin/portfolio/" class="on">Portfólio</a>
+      </nav>
+
+      <div id="setup" class="aviso hidden">
+        <strong>Tabela ainda não existe no Supabase.</strong><br />
+        Rode uma vez o arquivo <code>supabase/portfolio.sql</code> no SQL Editor do projeto e
+        recarregue esta página.
+      </div>
+
+      <div class="topbar" style="margin-top:22px">
+        <p id="contador" class="sub"></p>
+        <button id="novo" class="btn primary sm">+ Novo projeto</button>
+      </div>
+
+      <!-- Formulário (criar / editar) -->
+      <form id="form" class="form hidden" autocomplete="off">
+        <h2 id="form-titulo">Novo projeto</h2>
+
+        <div class="grid2" style="margin-top:14px">
+          <div class="field">
+            <label for="f-cliente">Nome do cliente *</label>
+            <input id="f-cliente" type="text" placeholder="Marévia" required />
+          </div>
+          <div class="field">
+            <label for="f-slug">Identificador *</label>
+            <input id="f-slug" type="text" placeholder="marevia" required />
+            <span class="hint">Só letras minúsculas e hífen. É o nome que aparece nos cliques.</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="f-segmento">Segmento e praça</label>
+          <input id="f-segmento" type="text" placeholder="Moda praia e fitness · Paulista/PE" />
+        </div>
+
+        <div class="field">
+          <label for="f-titulo">O que foi entregue</label>
+          <input id="f-titulo" type="text" placeholder="Uma IA vendendo no WhatsApp e o painel de atribuição" />
+          <span class="hint">Na linguagem de quem compra, não na sua.</span>
+        </div>
+
+        <div class="field">
+          <label for="f-resumo">Resumo</label>
+          <textarea id="f-resumo" placeholder="Duas ou três linhas. Fale do problema que resolveu, não da tecnologia."></textarea>
+        </div>
+
+        <div class="field">
+          <label for="f-entregas">Etiquetas do card</label>
+          <input id="f-entregas" type="text" placeholder="Atendimento com IA, Atribuição, Admin e estoque" />
+          <span class="hint">Separe por vírgula. Máximo 5 aparecem no card.</span>
+        </div>
+
+        <div class="field">
+          <label for="f-url">Link da demo</label>
+          <input id="f-url" type="url" placeholder="https://marevia-demo.vercel.app" />
+          <span class="hint">Deixe vazio enquanto não subiu — o card mostra "Em preparação" e não abre.</span>
+        </div>
+
+        <div class="grid3" style="margin-top:2px">
+          <div class="field">
+            <label for="f-tipo">Etiqueta do canto</label>
+            <select id="f-tipo">
+              <option>Projeto entregue</option>
+              <option>Protótipo de demonstração</option>
+              <option>Em produção</option>
+              <option>Case</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-ano">Ano</label>
+            <input id="f-ano" type="text" placeholder="2026" />
+          </div>
+          <div class="field">
+            <label for="f-ordem">Posição</label>
+            <input id="f-ordem" type="number" value="0" />
+            <span class="hint">Menor aparece primeiro.</span>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Cores da capa</label>
+            <div class="cores" style="margin-top:5px">
+              <input id="f-cor1" type="color" value="#1b2233" />
+              <input id="f-cor2" type="color" value="#3b9eff" />
+              <span class="hint" style="margin:0">Cores da marca do cliente. Usadas quando não há imagem.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-cover">Imagem de capa</label>
+            <input id="f-cover" type="text" placeholder="/assets/case-marevia.webp" />
+            <span class="hint">Opcional. Jogue o arquivo em /assets e aponte aqui.</span>
+          </div>
+        </div>
+
+        <label class="check">
+          <input id="f-publicado" type="checkbox" checked />
+          Publicado — aparece em <code>/portfolio/</code>
+        </label>
+
+        <div class="form-acoes">
+          <button id="salvar" type="submit" class="btn primary">Salvar projeto</button>
+          <button id="cancelar" type="button" class="btn">Cancelar</button>
+          <span id="form-msg" class="muted" style="font-size:13px"></span>
+        </div>
+      </form>
+
+      <div id="lista" class="lista"></div>
+      <p id="state" class="state"></p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/admin/portfolio/portfolio-admin.js" defer></script>
+</body>
+</html>
