@@ -52,10 +52,14 @@
 
   /* ---------- Cabeçalho ---------- */
   .pf-head { display: flex; flex-direction: column; align-items: flex-start; }
+  /* O arquivo do logo tem bastante área transparente em volta, então altura
+     pequena o deixa minúsculo. A landing usa 176px pelo mesmo motivo. */
   .pf-logo {
-    height: 56px; width: auto; object-fit: contain;
+    height: 140px; width: auto; object-fit: contain;
+    margin-left: -10px;
     filter: drop-shadow(0 0 40px var(--accent-glow));
   }
+  @media (max-width: 640px) { .pf-logo { height: 104px; } }
   .pf-tag {
     margin-top: 22px;
     font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
